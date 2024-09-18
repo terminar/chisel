@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"strings"
 	"time"
 
@@ -84,16 +85,27 @@ func (c *Client) connectionOnce(ctx context.Context) (connected bool, err error)
 		WriteBufferSize:  settings.EnvInt("WS_BUFF_SIZE", 0),
 		NetDialContext:   c.config.DialContext,
 	}
+
 	//optional proxy
 	if p := c.proxyURL; p != nil {
 		if err := c.setProxy(p, &d); err != nil {
 			return false, err
 		}
 	}
+
 	wsConn, _, err := d.DialContext(ctx, c.server, c.config.Headers)
 	if err != nil {
 		return false, err
 	}
+
+	//disable tcp keepalive (useless because we have websocket keepalive)
+	//https://github.com/jpillora/chisel/pull/339/files
+	ulwsConn := wsConn.UnderlyingConn()
+	tcpConn, ok := ulwsConn.(*net.TCPConn)
+	if ok {
+		tcpConn.SetKeepAlive(false)
+	}
+
 	conn := cnet.NewWebSocketConn(wsConn)
 	// perform SSH handshake on net.Conn
 	c.Debugf("Handshaking...")
