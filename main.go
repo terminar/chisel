@@ -4,7 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	"strconv"
@@ -118,8 +120,9 @@ var serverHelp = `
     --keyfile, An optional path to a PEM-encoded SSH private key. When
     this flag is set, the --key option is ignored, and the provided private key
     is used to secure all communications. (defaults to the CHISEL_KEY_FILE
-    environment variable). Since ECDSA keys are short, you may also set keyfile
-    to an inline base64 private key (e.g. chisel server --keygen - | base64).
+    environment variable). Since ECDSA keys are short, you may also supply
+    the chiselkey (output of "chisel server --keygen -") as the argument
+    to --keyfile and forgo requiring a file on disk.
 
     --authfile, An optional path to a users.json file. This file should
     be an object with users defined like:
@@ -454,10 +457,26 @@ func client(args []string) {
 	if config.Auth == "" {
 		config.Auth = os.Getenv("AUTH")
 	}
-	//move hostname onto headers
+
+	Hostname := ""
+	//set via --hostname
 	if *hostname != "" {
-		config.Headers.Set("Host", *hostname)
-		config.TLS.ServerName = *hostname
+		Hostname = *hostname
+	} else {
+		//not set via --hostname but ':' in Server, we need to set Header without Port or connection will fail
+		u, err := url.Parse(config.Server)
+		if err == nil {
+			host, port, _ := net.SplitHostPort(u.Host)
+			if port != "" {
+				Hostname = host
+			}
+		}
+	}
+
+	//move hostname onto headers
+	if Hostname != "" {
+		config.Headers.Set("Host", Hostname)
+		config.TLS.ServerName = Hostname
 	}
 
 	if *sni != "" {
