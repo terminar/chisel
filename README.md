@@ -8,13 +8,23 @@ Chisel is a fast TCP/UDP tunnel, transported over HTTP, secured via SSH. Single 
 
 ## Table of Contents
 
-- [Features](#features)
-- [Install](#install)
-- [Demo](#demo)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [Changelog](#changelog)
-- [License](#license)
+- [Chisel](#chisel)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Install](#install)
+    - [Binaries](#binaries)
+    - [Docker](#docker)
+    - [Fedora](#fedora)
+    - [Source](#source)
+  - [Demo](#demo)
+  - [Usage](#usage)
+    - [Security](#security)
+    - [Authentication](#authentication)
+    - [SOCKS5 Guide with Docker](#socks5-guide-with-docker)
+      - [Caveats](#caveats)
+  - [Contributing](#contributing)
+  - [Changelog](#changelog)
+  - [License](#license)
 
 ## Features
 
@@ -133,9 +143,10 @@ $ chisel server --help
     --keyfile, An optional path to a PEM-encoded SSH private key. When
     this flag is set, the --key option is ignored, and the provided private key
     is used to secure all communications. (defaults to the CHISEL_KEY_FILE
-    environment variable). Since ECDSA keys are short, you may also set keyfile
-    to an inline base64 private key (e.g. chisel server --keygen - | base64).
-
+    environment variable). Since ECDSA keys are short, you may also supply
+    the chiselkey (output of "chisel server --keygen -") as the argument
+    to --keyfile and forgo requiring a file on disk.
+    
     --authfile, An optional path to a users.json file. This file should
     be an object with users defined like:
       {
@@ -423,7 +434,7 @@ Since WebSockets support is required:
 - `1.7` - Added UDP support
 - `1.8` - Move to a `scratch`Docker image
 - `1.9` - Bump to Go 1.21. Switch from `--key` seed to P256 key strings with `--key{gen,file}` (by @cmenginnz)
-- `1.10` - Bump to Go 1.22. Add `.rpm` `.deb` and `.akp` to releases. Fix bad version comparison.
+- `1.10` - Bump to Go 1.22. Add `.rpm` `.deb` and `.apk` to releases. Fix bad version comparison.
 
 ## License
 
